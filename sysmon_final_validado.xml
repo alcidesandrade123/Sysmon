@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Sysmon schemaversion="4.80">
+  <EventFiltering>
+
+    <!-- Event ID 1: Process Create -->
+    <ProcessCreate onmatch="include">
+      <CommandLine condition="contains">.</CommandLine>
+    </ProcessCreate>
+
+    <!-- Event ID 2: File Creation Time changed -->
+    <FileCreateTime onmatch="include">
+      <Image condition="end with">.exe</Image>
+    </FileCreateTime>
+
+    <!-- Event ID 3: Network Connect -->
+    <NetworkConnect onmatch="exclude">
+      <Image condition="begin with">C:\Windows\System32\svchost.exe</Image>
+      <Image condition="begin with">C:\Windows\System32\services.exe</Image>
+      <Image condition="begin with">C:\Program Files\Windows Defender\</Image>
+      <Image condition="begin with">C:\Windows\System32\lsass.exe</Image>
+    </NetworkConnect>
+
+    <NetworkConnect onmatch="exclude">
+      <DestinationIp condition="begin with">192.168.19.</DestinationIp>
+    </NetworkConnect>
+
+    <NetworkConnect onmatch="include">
+      <Image condition="end with">.exe</Image>
+    </NetworkConnect>
+
+    <!-- Event ID 5: Process Terminate (somente processos críticos) -->
+    <ProcessTerminate onmatch="include">
+      <Image condition="end with">lsass.exe</Image>
+      <Image condition="end with">sysmon.exe</Image>
+      <Image condition="end with">services.exe</Image>
+      <Image condition="end with">winlogon.exe</Image>
+      <Image condition="end with">explorer.exe</Image>
+      <Image condition="end with">taskmgr.exe</Image>
+      <Image condition="end with">MsMpEng.exe</Image>
+    </ProcessTerminate>
+
+
+    <!-- Event ID 6: Driver Load -->
+    <DriverLoad onmatch="exclude">
+      <Signature condition="is">Microsoft Windows</Signature>
+    </DriverLoad>
+    <DriverLoad onmatch="include">
+      <ImageLoaded condition="end with">.sys</ImageLoaded>
+    </DriverLoad>
+
+    <!-- Event ID 7: Image Load -->
+    <ImageLoad onmatch="exclude">
+      <Signature condition="is">Microsoft Windows</Signature>
+    </ImageLoad>
+    <ImageLoad onmatch="include">
+      <Image condition="end with">.dll</Image>
+    </ImageLoad>
+
+    <!-- Event ID 10: Process Access -->
+    <ProcessAccess onmatch="include">
+      <GrantedAccess condition="is">0x1fffff</GrantedAccess>
+      <!-- Alvos sensíveis com qualquer acesso -->
+      <TargetImage condition="end with">lsass.exe</TargetImage>
+      <TargetImage condition="end with">winlogon.exe</TargetImage>
+      <TargetImage condition="end with">services.exe</TargetImage>
+      <TargetImage condition="end with">explorer.exe</TargetImage>
+      <TargetImage condition="end with">taskmgr.exe</TargetImage>
+
+      <!-- Fontes suspeitas -->
+      <SourceImage condition="end with">powershell.exe</SourceImage>
+      <SourceImage condition="end with">cmd.exe</SourceImage>
+      <SourceImage condition="end with">wscript.exe</SourceImage>
+      <SourceImage condition="end with">mshta.exe</SourceImage>
+      <SourceImage condition="end with">rundll32.exe</SourceImage>
+
+    </ProcessAccess>
+
+    <!-- Event ID 11: File Create -->
+    <FileCreate onmatch="exclude">
+      <TargetFilename condition="begin with">C:\Windows\Temp\</TargetFilename>
+      <TargetFilename condition="begin with">C:\Users\</TargetFilename>
+    </FileCreate>
+    <FileCreate onmatch="include">
+      <TargetFilename condition="end with">.exe</TargetFilename>
+    </FileCreate>
+
+    <!-- Event ID 12-14: Registry Events (combined) -->
+    <RegistryEvent onmatch="include">
+      <TargetObject condition="contains">\Run</TargetObject>
+    </RegistryEvent>
+
+    <!-- Event ID 22: DNS Query -->
+    <DnsQuery onmatch="include">
+      <QueryName condition="contains">.</QueryName>
+    </DnsQuery>
+
+    <!-- Event ID 23: File Delete -->
+    <FileDelete onmatch="exclude">
+      <Image condition="begin with">C:\Windows\System32\</Image>
+      <Image condition="is">C:\Program Files (x86)\ossec-agent\wazuh-agent.exe</Image>
+
+    </FileDelete>
+    <FileDelete onmatch="include">
+      <Image condition="end with">.exe</Image>
+    </FileDelete>
+
+  </EventFiltering>
+</Sysmon>
